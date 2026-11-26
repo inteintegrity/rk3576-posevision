@@ -1,0 +1,10 @@
+{
+  "decoded_frames": 1500,
+  "fps": 50.0,
+  "duration_seconds": 30.0,
+  "width": 1360,
+  "height": 540,
+  "codec_fourcc": "h264",
+  "bytes": 25762328,
+  "sha256": "796bc36f1de7ebc8879dfedd6f4744f7205cc2d667018a0c885ce5ecaf9b8678"
+}

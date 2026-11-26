@@ -1,0 +1,82 @@
+{
+  "job_id": "aac9988b3e8847afbc2b855a76cf3e2d",
+  "state": "complete",
+  "verified": [
+    "1500 source frames processed",
+    "real ball detections present",
+    "17-keypoint pose observations present",
+    "calibrated court positions present",
+    "MP4 byte-range seeking returns HTTP 206",
+    "JSONL contains 1500 frame records"
+  ],
+  "report": {
+    "frames": 1500,
+    "source_fps": 50.0,
+    "source_total_frames": 1500,
+    "partial_run": false,
+    "elapsed_seconds": 1842.8381482089753,
+    "end_to_end_fps": 0.8139618780183305,
+    "detection_npu_fps": 17.82638224717558,
+    "detection_npu_frame_fps": 4.456595561793895,
+    "detection_npu_calls": 6000,
+    "detection_npu_seconds": 336.57979038066696,
+    "pose_backend": "hybrid",
+    "pose_calls": 8760,
+    "pose_cpu_head_seconds": 78.7226340326597,
+    "pose_npu_fps": 89.65814456721624,
+    "npu_pipeline_fps": 3.4539590643264884,
+    "npu_seconds": 434.2842436936917,
+    "track_observations": 10758,
+    "calibration": {
+      "image_points": [
+        [
+          0.234375,
+          0.6148149967193604
+        ],
+        [
+          0.45833298563957214,
+          0.6018519997596741
+        ],
+        [
+          0.48124998807907104,
+          0.7185189723968506
+        ],
+        [
+          0.21979199349880219,
+          0.7333329916000366
+        ]
+      ],
+      "court_points": [
+        [
+          0.336667001247406,
+          0.0
+        ],
+        [
+          0.336667001247406,
+          0.20714299380779266
+        ],
+        [
+          0.663332998752594,
+          0.20714299380779266
+        ],
+        [
+          0.663332998752594,
+          0.0
+        ]
+      ]
+    },
+    "mapping": "manual homography with floor optical-flow/RANSAC camera compensation",
+    "mapping_status": "camera-tracked",
+    "mapping_registered_frames": 1500,
+    "mapping_lost_frames": 0,
+    "mapped_observations": 9812,
+    "detections_by_class": {
+      "player": 9079,
+      "ball": 1104,
+      "referee": 1179,
+      "others": 4
+    },
+    "reid_backend": "MobileNetV2 ONNX Runtime CPU",
+    "timing_scope": "NPU FPS measures blocking RKNN inference API only. End-to-end includes initialization, decode, preprocessing, CPU association/ReID, pose, projection, drawing, JSON and MP4 finalization; excludes upload."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "frames": 100,
+  "source_fps": 50.0,
+  "source_total_frames": 1500,
+  "partial_run": true,
+  "elapsed_seconds": 31.218386631982867,
+  "end_to_end_fps": 3.2032404870516653,
+  "detection_npu_fps": 18.85699494646484,
+  "detection_npu_seconds": 5.303071898990311,
+  "pose_backend": "off",
+  "pose_calls": 0,
+  "pose_npu_fps": null,
+  "npu_pipeline_fps": 18.85699494646484,
+  "npu_seconds": 5.303071898990311,
+  "track_observations": 196,
+  "calibration": null,
+  "mapping": "disabled: calibration required",
+  "reid_backend": "MobileNetV2 ONNX Runtime CPU",
+  "timing_scope": "NPU FPS measures blocking RKNN inference API only. End-to-end includes initialization, decode, preprocessing, CPU association/ReID, pose, projection, drawing, JSON and MP4 finalization; excludes upload."
+}

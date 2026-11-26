@@ -1,0 +1,5 @@
+{
+  "image_points": [[0.234375,0.614815],[0.458333,0.601852],[0.48125,0.718519],[0.219792,0.733333]],
+  "court_points": [[0.336667,0],[0.336667,0.207143],[0.663333,0.207143],[0.663333,0]],
+  "notes": "Manually measured first-frame paint corners: 960px preview (225,332),(440,325),(462,388),(211,396). Assumes 28m x 15m court and 5.8m x 4.9m paint. Approximate manual calibration, first viewpoint only; re-calibrate after camera movement."
+}

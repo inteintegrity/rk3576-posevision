@@ -1,0 +1,16 @@
+{
+  "machine": "aarch64",
+  "kernel": "6.1.115-vendor-seeed-rk3576",
+  "python": "3.11.2",
+  "numpy": "1.26.4",
+  "opencv-python": "4.11.0.86",
+  "onnxruntime": "1.26.0",
+  "rknn-toolkit-lite2": "2.3.2",
+  "deep-sort-realtime": "1.3.2",
+  "fastapi": "0.165.0",
+  "uvicorn": "0.54.0",
+  "fastapi_imported_version": "0.115.12",
+  "uvicorn_imported_version": "0.34.2",
+  "compatible": "seeed,recomputer rk3576 devkit,rockchip,rk3576,",
+  "npu_frequency": "950000000\n"
+}

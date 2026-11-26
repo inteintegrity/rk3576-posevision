@@ -1,0 +1,14 @@
+{
+  "job_id": "aac9988b3e8847afbc2b855a76cf3e2d",
+  "url": "http://192.168.3.120:8093/api/jobs/aac9988b3e8847afbc2b855a76cf3e2d",
+  "tested": [
+    "GET English UI",
+    "original sample selection",
+    "first-frame decode",
+    "degenerate calibration rejection",
+    "MP4 upload",
+    "hybrid NPU job submission",
+    "concurrent NPU job rejection",
+    "incomplete MP4 withheld"
+  ]
+}

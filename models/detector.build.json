@@ -1,0 +1,7 @@
+{
+  "target": "rk3576",
+  "precision": "fp16",
+  "seconds": 2.5644224440000016,
+  "source_sha256": "a73c226af21caa94bad3722b9176c97f25986a27f45b4afed6d2ae6e0057e890",
+  "rknn_sha256": "aae90a631cf99f6a753782dd975624d1043cf837a4d2c3781a6ad596e8ad9253"
+}

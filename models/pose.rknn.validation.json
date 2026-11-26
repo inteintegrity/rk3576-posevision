@@ -1,0 +1,7 @@
+{
+  "status": "FAILED: experimental full-graph model, do not deploy as valid pose",
+  "device": "reComputer RK3576, driver 0.9.8, librknnrt 2.3.0, Lite2/Toolkit2 2.3.2",
+  "observation": "Both SimCC output tensors were entirely zero for real player crops despite successful load/inference return. Mean coordinate error against ONNX was 260.39 pixels.",
+  "alternative": "Use pose_backbone.rknn plus unchanged pose_head.onnx (hybrid backend); first-frame valid-keypoint mean error 3.10 pixels, max 29.73 pixels, 33 checked joints. Full ONNX CPU backend is an explicit alternative.",
+  "root_cause": "Full-graph numerical/compiler/runtime compatibility failure; failing operator not isolated. Splitting before the RTMCC/SimCC head resolves the observed problem."
+}
