@@ -1,0 +1,100 @@
+{
+  "frames": 1500,
+  "source_fps": 50.0,
+  "source_total_frames": 1500,
+  "partial_run": false,
+  "elapsed_seconds": 930.424659198965,
+  "end_to_end_fps": 1.6121670735719777,
+  "detection_npu_fps": 20.098739016985412,
+  "detection_npu_frame_fps": 5.024684754246353,
+  "detection_npu_calls": 6000,
+  "detection_npu_seconds": 298.52619086846244,
+  "pose_backend": "hybrid",
+  "pose_calls": 8759,
+  "pose_cpu_head_seconds": 66.62049373460468,
+  "pose_npu_fps": 100.28342250957834,
+  "npu_pipeline_fps": 2.7080264545109056,
+  "npu_seconds": 553.9089167690254,
+  "track_observations": 10757,
+  "calibration": {
+    "image_points": [
+      [
+        0.234375,
+        0.6148149967193604
+      ],
+      [
+        0.45833298563957214,
+        0.6018519997596741
+      ],
+      [
+        0.48124998807907104,
+        0.7185189723968506
+      ],
+      [
+        0.21979199349880219,
+        0.7333329916000366
+      ]
+    ],
+    "court_points": [
+      [
+        0.336667001247406,
+        0.0
+      ],
+      [
+        0.336667001247406,
+        0.20714299380779266
+      ],
+      [
+        0.663332998752594,
+        0.20714299380779266
+      ],
+      [
+        0.663332998752594,
+        0.0
+      ]
+    ]
+  },
+  "mapping": "manual homography with floor optical-flow/RANSAC camera compensation",
+  "mapping_status": "camera-tracked",
+  "mapping_registered_frames": 1500,
+  "mapping_lost_frames": 0,
+  "mapped_observations": 9811,
+  "detections_by_class": {
+    "player": 9079,
+    "ball": 1104,
+    "referee": 1179,
+    "others": 4
+  },
+  "ball_tiling": "adaptive human-centered vertical band, square tiles up to 1440px; same weights; ball confidence 0.12",
+  "reid_backend": "rknn",
+  "timing_scope": "NPU FPS measures blocking RKNN inference API only. End-to-end includes initialization, decode, preprocessing, CPU association/ReID, pose, projection, drawing, JSON and MP4 finalization; excludes upload.",
+  "reid_npu_seconds": 168.0402740694699,
+  "reid_npu_calls": 11362,
+  "reid_npu_fps": 67.61474332815484,
+  "reid_total_seconds": 191.8328342300956,
+  "association_seconds": 43.786617782199755,
+  "opencv_threads": 2,
+  "blas_threads": 1,
+  "deepsort_feature_budget": 100,
+  "decode_worker_seconds": 88.50817215547431,
+  "decode_wait_seconds": 0.04991845751646906,
+  "encoder_worker_write_seconds": 17.562547650071792,
+  "video_queue_frames": 2,
+  "stage_wall_seconds": {
+    "initialization": 1.4753491149749607,
+    "decode_wait": 1.5506104957894422,
+    "detection": 376.5223816080834,
+    "tracking_reid": 235.794960872503,
+    "teams": 5.685657956870273,
+    "pose": 174.2568612866453,
+    "camera_projection": 75.02938020438887,
+    "trace_json": 1.452520415536128,
+    "render": 24.539311301370617,
+    "encoder_submit": 0.16093509591883048,
+    "preview": 26.620170302514452,
+    "encoder_finalize": 0.12291080300929025
+  },
+  "detector_model": "detector.rknn",
+  "detector_core_mask": 3,
+  "reid_core_mask": 3
+}

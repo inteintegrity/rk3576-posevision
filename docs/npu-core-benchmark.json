@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "0": {
+      "warmed_calls_per_second": 16.21239607207065,
+      "max_output_difference": 0.0
+    },
+    "3": {
+      "warmed_calls_per_second": 19.882860148298008,
+      "max_output_difference": 0.0
+    }
+  },
+  "pose_backbone": {
+    "0": {
+      "warmed_calls_per_second": 81.81909506789825,
+      "max_output_difference": 0.0
+    },
+    "3": {
+      "warmed_calls_per_second": 57.51236475670494,
+      "max_output_difference": 0.0
+    }
+  },
+  "reid": {
+    "0": {
+      "warmed_calls_per_second": 48.48617987926938,
+      "max_output_difference": 0.0
+    },
+    "3": {
+      "warmed_calls_per_second": 58.92874650073731,
+      "max_output_difference": 0.0
+    }
+  }
+}

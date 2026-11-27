@@ -1,0 +1,23 @@
+{
+  "frames": 1500,
+  "detections_by_class": {
+    "0": 9079,
+    "1": 1104,
+    "2": 1179,
+    "3": 4
+  },
+  "frames_with_ball_detection": 992,
+  "track_ids": 147,
+  "pose_observations": 8759,
+  "confidence_qualified_joint_observations": 141267,
+  "mapped_track_observations": 9811,
+  "mapping_status_frames": {
+    "calibrated": 1,
+    "camera-tracked": 1499
+  },
+  "team_observations": {
+    "-1": 18,
+    "0": 3352,
+    "1": 5389
+  }
+}

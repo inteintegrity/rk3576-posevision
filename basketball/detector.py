@@ -1,5 +1,5 @@
 """RK3576 FP16 / CPU ONNX reference custom YOLO11n decoding; no synthetic or CPU fallback detections."""
-import time
+import time,os
 from types import SimpleNamespace
 
 import cv2
@@ -40,21 +40,24 @@ def decode(outputs, transform, frame_shape, confidence=0.30):
         raise ValueError(f'Expected nine raw-head outputs, got {len(outputs)}')
     all_boxes, all_scores, all_classes = [], [], []
     for branch in range(3):
-        raw, probs = outputs[branch*3:branch*3+2]
-        _, _, h, w = raw.shape
-        logits = raw.astype(np.float32).reshape(1, 4, 16, h, w)
-        weights = np.exp(logits - logits.max(axis=2, keepdims=True))
-        weights /= weights.sum(axis=2, keepdims=True)
-        dist = (weights * np.arange(16).reshape(1, 1, 16, 1, 1)).sum(axis=2)[0]
-        yy, xx = np.mgrid[:h, :w]
-        grid = np.stack((xx + .5, yy + .5))
-        boxes = np.concatenate((grid - dist[:2], grid + dist[2:]), axis=0)
-        boxes = boxes.transpose(1, 2, 0).reshape(-1, 4) * (640 / h)
-        scores = probs[0].reshape(len(CLASSES), -1).T
-        classes = scores.argmax(axis=1)
-        scores = scores.max(axis=1)
-        selected = (scores >= confidence) & np.isin(classes, list(CLASSES))
-        all_boxes.append(boxes[selected]); all_scores.append(scores[selected]); all_classes.append(classes[selected])
+        raw,probs=outputs[branch*3:branch*3+2]
+        _,_,h,w=raw.shape
+        probabilities=probs[0].reshape(len(CLASSES),-1)
+        classes=probabilities.argmax(axis=0)
+        scores=probabilities.max(axis=0)
+        selected=np.flatnonzero(scores>=confidence)
+        if not len(selected):continue
+        # Class scores do not depend on DFL. Decode only candidates that can
+        # survive the confidence gate, instead of all 8400 grid cells.
+        logits=raw.reshape(4,16,-1)[:,:,selected].astype(np.float32,copy=False)
+        weights=np.exp(logits-logits.max(axis=1,keepdims=True))
+        weights/=weights.sum(axis=1,keepdims=True)
+        dist=(weights*np.arange(16,dtype=np.float32)[None,:,None]).sum(axis=1)
+        grid=np.stack((selected%w+.5,selected//w+.5)).astype(np.float32)
+        boxes=np.concatenate((grid-dist[:2],grid+dist[2:]),axis=0).T*(640/h)
+        all_boxes.append(boxes);all_scores.append(scores[selected]);all_classes.append(classes[selected])
+    if not all_boxes:
+        return np.empty((0,4),np.float32),np.empty(0,np.float32),np.empty(0,np.int64)
     boxes, scores, classes = map(np.concatenate, (all_boxes, all_scores, all_classes))
     keep = []
     for cls in CLASSES:
@@ -83,7 +86,8 @@ class Detector:
             self.runtime = RKNNLite()
             if self.runtime.load_rknn(str(model)) != 0:
                 raise RuntimeError('RKNN load failed')
-            if self.runtime.init_runtime(core_mask=RKNNLite.NPU_CORE_AUTO) != 0:
+            self.core_mask=int(os.environ.get('BASKETBALL_DETECTOR_CORES','3'))
+            if self.runtime.init_runtime(core_mask=self.core_mask) != 0:
                 raise RuntimeError('RK3576 NPU initialization failed')
         elif backend == 'onnx':
             import onnxruntime as ort
@@ -133,7 +137,7 @@ class Detector:
         return self.boxes
 
     def predict(self, image, classes=None, conf=.30, verbose=False):
-        # Both upstream consumers reuse this frame's genuine detections: one NPU call/frame.
+        # Consumers reuse this frame's genuine detections without another model call.
         return [SimpleNamespace(boxes=[b for b in self.boxes if b.conf[0] >= conf
                                      and (classes is None or int(b.cls[0]) in classes)])]
 

@@ -1,0 +1,22 @@
+[
+  {
+    "frame": 0,
+    "detections": 2,
+    "max_coordinate_difference_original_pixels": 0.00017233053222298622
+  },
+  {
+    "frame": 500,
+    "detections": 13,
+    "max_coordinate_difference_original_pixels": 0.00024307315106852911
+  },
+  {
+    "frame": 1000,
+    "detections": 17,
+    "max_coordinate_difference_original_pixels": 0.0002741620273809531
+  },
+  {
+    "frame": 1499,
+    "detections": 6,
+    "max_coordinate_difference_original_pixels": 0.00013401266187429428
+  }
+]

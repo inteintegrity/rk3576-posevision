@@ -8,7 +8,7 @@ A local English FastAPI application using the original [PoseVision](https://gith
 | --- | --- | --- |
 | Detection | Original four-class YOLO11n, 640 × 640 RGB letterbox; player/referee/other confidence 0.30, ball 0.12; DFL and per-class NMS; adaptive high-resolution ball tiles | RK3576 NPU, FP16 RKNN |
 | Tracking | DeepSORT Kalman filter, matching cascade, cosine appearance association; separate player/ball/referee trackers | CPU |
-| Appearance | DeepSORT's bundled pretrained ImageNet MobileNetV2 bottleneck, unchanged ONNX export, 1280-dimensional embeddings | ONNX Runtime CPU |
+| Appearance | DeepSORT's bundled pretrained ImageNet MobileNetV2 bottleneck, unchanged weights, 1280-dimensional embeddings | RK3576 NPU FP16; explicit CPU alternative |
 | Teams | Two torso saturation/value clusters, per-ID vote stabilization, unknown until sufficient separation | CPU |
 | Pose | Exact RTMPose-s `fcb2599b_20230126` checkpoint, 192 × 256 RGB, 17 COCO joints, SimCC split ratio 2 | RK3576 NPU backbone + ONNX CPU RTMCC/SimCC head |
 | Court | Four corresponding floor/reference points, manual homography, floor optical-flow/RANSAC camera compensation, player footpoint projection | OpenCV CPU |
@@ -18,7 +18,17 @@ The actual checkpoint metadata identifies class 0 `player`, 1 `ball`, 2 `referee
 
 **Compatibility:** the default pose backend is a verified NPU backbone + CPU head. The experimental full RTMPose RKNN returns all-zero outputs on this board and is not used by the WebUI. See the detailed limitation and alternative below.
 
-## Verified complete sample
+## Optimized deployment
+
+The complete original 1500-frame sample now finishes in **930.42 seconds at 1.612 end-to-end FPS**, compared with 1842.84 seconds / 0.814 FPS before optimization: **1.98× faster**. Every frame and all stages remain enabled. All 11,366 detections match the previous run; matched keypoint coordinates differ by 0.0003 original-image pixels on average. DeepSORT confirmations can change slightly (8759 versus 8760 pose observations).
+
+The update adds NPU ReID, measured per-model NPU core selection, bounded CPU thread pools and DeepSORT galleries, score-first DFL decoding, and ordered video prefetch/encoding queues. The faster INT8 detector candidate failed the quality gate and remains excluded. This is still offline processing, not real-time 25/50 FPS.
+
+[Full optimization measurements and limitations](docs/PERFORMANCE.md) · [Open the optimized saved result](http://192.168.3.120:8093/?job=e018f8f89ece407390e0eff82810b569)
+
+![Actual optimized result](docs/optimized-result-preview.jpg)
+
+## Original baseline complete sample
 
 All 1500 original 4K frames completed without skipping. The H.264 result is 1360 × 540, 50 FPS, 30 seconds, and every output frame was decoded successfully.
 
@@ -73,10 +83,15 @@ Calibration belongs to the current job, not every uploaded video. New uploads be
 
 - **Detection NPU FPS** = detection calls / cumulative blocking RKNN inference API time, including the first real call. High-resolution footage uses one full-frame call plus overlapping ball-tile calls (four calls per frame on sample2). This rate is calls/s. `detection_npu_frame_fps` in JSON gives processed video frames divided by total detection NPU time. Preprocessing/DFL/NMS are excluded.
 - **Pose NPU backbone FPS** = person crops / cumulative blocking pose backbone RKNN inference API time. The unchanged pose attention/SimCC head runs on CPU and is included in end-to-end time, with its own time in JSON. This is crops per second, not video frames per second; a frame with ten players requires ten pose calls.
-- **NPU pipeline FPS** in JSON = processed video frames / (detection NPU API time + pose backbone NPU API time). CPU pose time is excluded when the explicit CPU pose option is used.
+- **ReID NPU FPS** = appearance crops / cumulative blocking ReID RKNN API time.
+- **NPU pipeline FPS** in JSON = processed video frames / (detection NPU API time + pose backbone NPU API time + ReID NPU API time). CPU pose time is excluded when the explicit CPU pose option is used.
 - **End-to-end FPS** = video frames / wall time from model initialization through video decode, preprocessing, CPU ReID/tracking, teams, pose, court mapping, rendering, JSON writing, MP4 encoding and finalization. Upload and queue wait are excluded. During processing it is provisional; the final report includes encoder flush.
 
 The saved MP4 retains the source frame rate and duration, with no frame skipping in normal runs. Output width is at most 960 video pixels plus a 400-pixel court panel; this is rendering resolution, not inference throughput. Audio is omitted. Video playback FPS does not represent inference FPS. Actual measurements and validation artifacts are recorded in [docs/VALIDATION.md](docs/VALIDATION.md).
+
+## Performance controls
+
+The optimized defaults use NPU ReID, a 100-feature DeepSORT gallery, one BLAS thread and two OpenCV threads. Detector and ReID use both RK3576 NPU cores; pose keeps automatic scheduling because it was faster in measured tests. Overrides are `BASKETBALL_CPU_THREADS`, `BASKETBALL_DETECTOR_CORES`, `BASKETBALL_REID_CORES`, `BASKETBALL_REID=onnx`, and `BASKETBALL_DETECTOR=/path/to/model.rknn`. There is no automatic CPU fallback. The experimental INT8 detector failed the quality comparison and is not enabled. See [PERFORMANCE.md](docs/PERFORMANCE.md) for complete before/after measurements.
 
 ## CLI and validation
 
@@ -131,21 +146,26 @@ python tools/export_pose.py
 python tools/export_reid.py
 python tools/convert_rknn.py detector
 python tools/convert_rknn.py pose_backbone
+python tools/convert_rknn.py reid
 # Optional compatibility experiment; fails output validation on the verified board:
 python tools/convert_rknn.py pose
 ```
 
 YOLO's weights remain unchanged. Only the export head is exposed as three raw DFL regression/classification scales; decoding/NMS run on CPU, following Rockchip's raw-head contract. RTMPose exports CSPNeXt + RTMCCHead with strict checkpoint loading, no flip augmentation and no training. The CPU exporter installs a fail-fast placeholder for unused compiled MMCV extensions because these models only need standard PyTorch operations. Invoking any compiled op fails explicitly; no operator output is synthesized. RKNN compilation uses static shapes, `target_platform='rk3576'`, FP16, and no quantization dataset.
 
-Normalization happens exactly once inside the RKNN graph: detector RGB `/255`; pose RGB `(pixel - [123.675,116.28,103.53]) / [58.395,57.12,57.375]`. Runtime inputs are uint8 NHWC. ONNX reference inputs are float32 NCHW with equivalent host normalization. Pose uses an aspect-preserving 1.25 padded affine crop and inverse-affine SimCC coordinate mapping. `.json` manifests document hashes, shapes and normalization; `.build.json` records RKNN build times and SHA-256. Measured build-only times on this PC were 2.56 seconds (detector) and 2.10 seconds (experimental full pose), and 1.35 seconds (working pose backbone); downloads and ONNX export are excluded.
+Normalization happens exactly once inside the RKNN graph: detector RGB `/255`; pose and ReID RGB `(pixel - [123.675,116.28,103.53]) / [58.395,57.12,57.375]`. Runtime inputs are uint8 NHWC. ONNX reference inputs are float32 NCHW with equivalent host normalization. Pose uses an aspect-preserving 1.25 padded affine crop and inverse-affine SimCC coordinate mapping. `.json` manifests document hashes, shapes and normalization; `.build.json` records RKNN build times and SHA-256. Measured build-only times on this PC were 2.56 seconds (detector) and 2.10 seconds (experimental full pose), and 1.35 seconds (working pose backbone); downloads and ONNX export are excluded.
 
 ## Limits and alternatives
 
-YOLO converts and runs correctly as RKNN. **Full RTMPose converts and loads, but its two SimCC outputs are all zero on the verified toolchain/runtime. It is not a working deployment.** The exact failing operator was not isolated; the full-graph numerical/compiler/runtime incompatibility is documented in `models/pose.rknn.validation.json` and `docs/model_parity.json`. The default verified alternative runs the original CSPNeXt backbone as `pose_backbone.rknn` and the unchanged RTMCC/SimCC head as `pose_head.onnx` on CPU. Weight loading is strict and there is no retraining. The WebUI does not offer the invalid full-graph model. The CLI experimental `--pose rknn` fails explicitly if outputs are all zero or nonfinite. If the NPU/driver is unavailable, the application fails visibly; it never substitutes fabricated output. Pose can be deliberately set to ONNX CPU or disabled to keep NPU detection/DeepSORT available. DeepSORT's appearance network is currently CPU ONNX and is not counted as NPU work.
+YOLO converts and runs correctly as RKNN. **Full RTMPose converts and loads, but its two SimCC outputs are all zero on the verified toolchain/runtime. It is not a working deployment.** The exact failing operator was not isolated; the full-graph numerical/compiler/runtime incompatibility is documented in `models/pose.rknn.validation.json` and `docs/model_parity.json`. The default verified alternative runs the original CSPNeXt backbone as `pose_backbone.rknn` and the unchanged RTMCC/SimCC head as `pose_head.onnx` on CPU. Weight loading is strict and there is no retraining. The WebUI does not offer the invalid full-graph model. The CLI experimental `--pose rknn` fails explicitly if outputs are all zero or nonfinite. If the NPU/driver is unavailable, the application fails visibly; it never substitutes fabricated output. Pose can be deliberately set to ONNX CPU or disabled to keep NPU detection/DeepSORT available. DeepSORT's appearance network now defaults to validated FP16 RKNN on NPU. Set `BASKETBALL_REID=onnx` for the explicit CPU alternative. Its NPU time/calls are reported separately and included in the optimized combined NPU metric.
 
 The full-frame-only detector missed the ball in the tested 4K footage. The final pipeline therefore also runs the same detector on overlapping, up-to-1440-pixel original-resolution square tiles in a vertical band centered on detected players/referees (or at 60% image height when no humans are detected). Only ball detections from tiles are retained; they are transformed back to original pixels and merged with class-wise NMS at IoU 0.5. The ball threshold is 0.12, while other classes retain 0.30. This increases NPU calls and can increase false positives; balls outside the adaptive vertical band or severely occluded/blurred balls can still be missed. The tile policy is fixed and performs real inference every frame. Traces retain genuine misses; no ball interpolation is painted as a detection. DeepSORT IDs can switch after occlusion and are not jersey-number identities. Team IDs are anonymous color groups; similarly saturated/value jerseys, referees, lighting and spectators can confuse classification. Pose quality depends on detector crop size and occlusions; only confidence-qualified joints/edges are drawn.
 
 Court mapping assumes a planar floor. Between frames, floor features are tracked with forward/backward Lucas–Kanade flow and RANSAC homography; player/ball detection regions are excluded. The initial manual homography is updated for camera movement. This can drift and is not a learned court-line detector. Fewer than 12 reliable inliers, a low inlier ratio, an abrupt scale change or failed registration disables mapping for the rest of that job and visibly reports **Camera tracking lost**. For a camera cut, upload a clip beginning at the new viewpoint and calibrate a new job. Airborne ball image centers do not lie on the floor and produce approximate projections. Court dots outside the normalized full-court bounds are withheld. Four internal floor landmarks (such as paint corners) can calibrate the full court through planar extrapolation. No possession/event recognition, 3D ball position, MOTA or dataset AP claims are made.
+
+## Development helpers
+
+`python -m pip install -r requirements-dev.txt` installs the optional HTTP/SSH helper dependencies. The FastAPI runtime only requires `requirements.txt`. Generated calibration images, videos, traces, logs and rejected model binaries remain ignored by Git.
 
 ## Files and operation
 
@@ -154,6 +174,6 @@ Court mapping assumes a planar floor. Between frames, floor features are tracked
 - `models/`: original-weight ONNX exports, FP16 RKNN binaries and conversion manifests.
 - `tools/`: conversion, source/sample acquisition, device environment and parity verification scripts. SSH helper takes credentials from environment/agent and does not store passwords.
 - `upstream/`: downloaded reference sources, config, custom weights and original sample; ignored by Git.
-- `outputs/<job-id>/`: uploaded input, first frame, live preview, result MP4, per-frame JSONL, report and status. Completed jobs persist across service restarts. Interrupted jobs are identified explicitly. Data remains local until you delete it; there is no automatic cleanup.
+- `outputs/<job-id>/`: uploaded input, first frame, live preview, result MP4, per-frame JSONL, report and status. Completed jobs persist across service restarts. Interrupted jobs are identified explicitly. Data remains local until you delete it; there is no automatic cleanup. Two-frame bounded decode/encode queues preserve every frame in order.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for component attribution and redistribution constraints. The GitHub repository excludes generated videos, uploads, caches, logs, compiler-debug graphs, intermediate detector/backbone ONNX exports, original checkpoints and downloaded upstream files.

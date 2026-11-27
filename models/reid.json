@@ -1,0 +1,30 @@
+{
+  "architecture": "DeepSORT ImageNet MobileNetV2 bottleneck",
+  "original_weights_sha256": "2f518e773d4402dde55f981ae3078a72ba95c3adccae1d55051a4be844d50197",
+  "onnx_input": [
+    "batch",
+    3,
+    224,
+    224
+  ],
+  "rknn_input": [
+    1,
+    224,
+    224,
+    3
+  ],
+  "rknn_dtype": "uint8",
+  "color": "RGB",
+  "mean": [
+    123.675,
+    116.28,
+    103.53
+  ],
+  "std": [
+    58.395,
+    57.12,
+    57.375
+  ],
+  "output_features": 1280,
+  "trained": false
+}

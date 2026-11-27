@@ -1,0 +1,37 @@
+{
+  "held_out_source_frames": [
+    37,
+    139,
+    271,
+    413,
+    559,
+    701,
+    853,
+    997,
+    1133,
+    1291,
+    1421
+  ],
+  "fp16_detections": {
+    "0": 65,
+    "2": 6,
+    "1": 7
+  },
+  "matched_at_iou_0_5": {
+    "0": 44,
+    "2": 4,
+    "1": 7
+  },
+  "retention_against_fp16": {
+    "0": 0.676923076923077,
+    "2": 0.6666666666666666,
+    "1": 1.0
+  },
+  "extra_int8_detections": {
+    "0": 1
+  },
+  "mean_matched_iou": 0.8906102762761089,
+  "fp16_npu_calls_per_second": 16.97223848710048,
+  "int8_npu_calls_per_second": 32.80092088930787,
+  "accepted": false
+}

@@ -1,0 +1,26 @@
+{
+  "frames_compared": 1500,
+  "baseline_detections": {
+    "0": 9079,
+    "1": 1104,
+    "2": 1179,
+    "3": 4
+  },
+  "matched_detections": {
+    "0": 9079,
+    "1": 1104,
+    "2": 1179,
+    "3": 4
+  },
+  "extra_detections": {},
+  "retention_against_baseline": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0
+  },
+  "mean_matched_detection_iou": 0.9999985884200875,
+  "compared_keypoints": 141267,
+  "mean_keypoint_difference_pixels": 0.0003093378718260727,
+  "note": "Agreement against previous real inference; no manually labeled accuracy claim."
+}

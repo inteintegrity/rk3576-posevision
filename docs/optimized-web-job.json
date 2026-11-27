@@ -1,0 +1,6 @@
+{
+  "job_id": "e018f8f89ece407390e0eff82810b569",
+  "url": "http://192.168.3.120:8093/?job=e018f8f89ece407390e0eff82810b569",
+  "source": "unmodified sample2.mp4",
+  "configuration": "FP16 detector + FP16 NPU ReID + hybrid pose; no skipped frames or disabled stages"
+}

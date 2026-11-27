@@ -23,3 +23,5 @@ outputs/
 /docs/tiled-preview.jpg
 /docs/sample2-first.jpg
 /docs/sample2-first-small.jpg
+/calibration/
+/models/detector_int8.rknn

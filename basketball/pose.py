@@ -33,7 +33,7 @@ class Pose:
         self.seconds+=time.perf_counter()-start;self.calls+=1
         if out is None:raise RuntimeError('Pose returned no tensors')
         if self.backend=='hybrid':
-            start=time.perf_counter();out=self.head.run(None,{'features':out[0].astype(np.float32)});self.head_seconds+=time.perf_counter()-start
+            start=time.perf_counter();out=self.head.run(None,{'features':np.asarray(out[0],dtype=np.float32)});self.head_seconds+=time.perf_counter()-start
         if not all(np.isfinite(o).all() for o in out) or all(np.count_nonzero(o)==0 for o in out):
             raise RuntimeError('Invalid pose tensors: all-zero/nonfinite output. Use verified hybrid or explicit ONNX CPU pose.')
         sx,sy=[np.asarray(o).reshape(17,-1) for o in out]
